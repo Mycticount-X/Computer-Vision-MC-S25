@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 catur = cv2.imread('./chessboard.jpg')
-# catur = cv2.imread('D:\\Practicum Binus\\Computer Vision\\Session 5\\chessboard.jpg')
+
 if (catur is None):
     print('Image not found')
     exit()
@@ -12,9 +12,9 @@ catur = cv2.resize(catur, (0, 0), fx=0.5, fy=0.5)
 gray = cv2.cvtColor(catur, cv2.COLOR_BGR2GRAY) # 
 gray = np.float32(gray)
 
-xtra1 = cv2.imread('D:\\Practicum Binus\\Computer Vision\\Session 5\\images\\1.jpg')
-xtra2 = cv2.imread('D:\\Practicum Binus\\Computer Vision\\Session 5\\images\\2.png')
-xtra3 = cv2.imread('D:\\Practicum Binus\\Computer Vision\\Session 5\\images\\3.jpg')
+xtra1 = cv2.imread('./images/1.jpg')
+xtra2 = cv2.imread('./images/2.png')
+xtra3 = cv2.imread('./images/3.jpg')
 
 if (xtra1 is None or xtra2 is None or xtra3 is None):
     print('One or more images not found')
@@ -90,7 +90,33 @@ subpix = SubpixelCorner(gray)
 fast_result = FastFeatureDetector(gray1, xtra1)
 orb_result = ORBFeatureDetector(gray1, xtra1)
 
-ShowImageCV2(harris, 'Harris')
-ShowImageCV2(subpix, 'Subpixel')
-ShowImageCV2(fast_result, 'FAST Result')
-ShowImageCV2(orb_result, 'ORB Result')
+# ShowImageCV2(harris, 'Harris')
+# ShowImageCV2(subpix, 'Subpixel')
+# ShowImageCV2(fast_result, 'FAST Result')
+# ShowImageCV2(orb_result, 'ORB Result')
+
+res_harris = [
+    HarrisCorner(gray1),
+    HarrisCorner(gray2),
+    HarrisCorner(gray3)
+]
+
+res_subpix = [
+    SubpixelCorner(gray1),
+    SubpixelCorner(gray2),
+    SubpixelCorner(gray3)
+]
+
+res_fast = [
+    FastFeatureDetector(gray1, xtra1),
+    FastFeatureDetector(gray2, xtra2),
+    FastFeatureDetector(gray3, xtra3)
+]
+
+res_orb = [
+    ORBFeatureDetector(gray1, xtra1),
+    ORBFeatureDetector(gray2, xtra2),
+    ORBFeatureDetector(gray3, xtra3)
+]
+
+plt.figure(figsize=(12, 8))

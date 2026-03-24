@@ -3,7 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def threshold_all(img, tres=100):
+    # Turn to Gray
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
+    # Apply Thresh
     ret, thresh1 = cv2.threshold(gray, tres, 255, cv2.THRESH_BINARY)
     ret, thresh2 = cv2.threshold(gray, tres, 255, cv2.THRESH_BINARY_INV)
     ret, thresh3 = cv2.threshold(gray, tres, 255, cv2.THRESH_TRUNC)
@@ -12,6 +15,7 @@ def threshold_all(img, tres=100):
     ret, thresh6 = cv2.threshold(gray, tres, 255, cv2.THRESH_OTSU)
     ret, thresh7 = cv2.threshold(gray, tres, 255, cv2.THRESH_TRIANGLE)
 
+    # Setup Result
     result = [
         gray, thresh1, thresh2, thresh3, thresh4, thresh5, thresh6, thresh7
     ]
@@ -21,6 +25,7 @@ def threshold_all(img, tres=100):
         'TOZERO', 'TOZERO_INV', 'OTSU', 'TRIANGLE'
     ]
 
+    # Plot
     plt.figure(figsize=(6, 5))
     for i, (res_img, res_desc) in enumerate(zip(result, result_desc)):
         plt.subplot(3, 3, i + 1)
