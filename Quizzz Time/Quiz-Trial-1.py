@@ -23,13 +23,13 @@ def Preprocessing(img, blurtype='gaussian', ksize=3):
     
     return img
 
-def Indentify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3):
-    img = cv2.imread(img_path)
-    if img is None:
+def Identify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3):
+    img_targ = cv2.imread(img_path)
+    if img_targ is None:
         print('File tidak ditemukan')
         return None
     
-    img = Preprocessing(img)
+    img_targ = Preprocessing(img_targ, blurtype, ksize)
 
     # Desc Algo
     if algo == 'AKAZE':
@@ -44,7 +44,7 @@ def Indentify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3
         descriptor = cv2.AKAZE.create()
     
     # Keypoint & Desc Extraction
-    kp_targ, desc_targ = descriptor.detectAndCompute(img, None)
+    kp_targ, desc_targ = descriptor.detectAndCompute(img_targ, None)
 
     if algo == 'ORB':
         matcher = cv2.BFMatcher(cv2.NORM_HAMMING, False)
@@ -64,11 +64,11 @@ def Indentify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3
             continue
 
         ref_path = os.path.join(dataset_path, filename)
-        ref_img = cv2.imread(ref_path)
-        ref_img = Preprocessing(ref_img)
+        img_ref = cv2.imread(ref_path)
+        img_ref = Preprocessing(img_ref, blurtype, ksize)
 
         # Keypoint & Desc Extraction
-        kp_ref, desc_ref = descriptor.detectAndCompute(ref_img, None)
+        kp_ref, desc_ref = descriptor.detectAndCompute(img_ref, None)
 
         if desc_ref is None or len(desc_ref) < 2:
             continue
@@ -77,7 +77,7 @@ def Indentify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3
             desc_ref = np.float32(desc_ref)
         
         # Lowe's Ratio Test
-        matches = matcher.knnMatch(desc_targ, desc_ref)
+        matches = matcher.knnMatch(desc_targ, desc_ref, k=2)
         good_matches = []
 
         for m, n in matches:
@@ -89,11 +89,12 @@ def Indentify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3
             best_match = good_matches
             best_data = {
                 'name': filename,
-                'image': ref_img,
+                'image': img_ref,
                 'keypoints': kp_ref,
                 'matches': good_matches
             }
     
+    # Visualization
     if best_match > 0:
         print('PoveKamon Terdeteksi!!')
         print(f'[{algo} | {blurtype.upper()}]')
@@ -102,7 +103,32 @@ def Indentify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3
         print(f'{best_data["name"]} ({best_data['matches']*100}%)')
         print('')
 
+        result = cv2.drawMatches(
+            img_targ, kp_targ,
+            best_data['image'], best_data['keypoints'],
+            best_data['matches'], None,
+            matchColor=(255, 255, 0), singlePointColor=(255, 0, 0),
+            flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
+        )
+
+        result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+
+        plt.figure(figsize=(10, 5))
+        plt.imshow(result)
+        plt.title(f'Target vs {best_data["name"].capitalize()}')
+        plt.axis('off')
+        plt.show()
+
+    else:
+        print('Tidak ada PoveKamon yang cocok dengan Gambar ini')
 
 
-    
-    
+if __name__ == '__main__':
+    print('Version 1')
+    Identify('./Images/Object.png', './Images/Data', 'AKAZE', 'median', 5)
+    Identify('./Images/Object2.png', './Images/Data', 'AKAZE', 'median', 5)
+    print('')
+
+    print('Version 2')
+    Identify('./Images/Object.png', './Images/Data', 'AKAZE', 'gaussian', 3)
+    Identify('./Images/Object2.png', './Images/Data', 'AKAZE', 'gaussian', 3)
