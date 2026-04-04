@@ -10,7 +10,7 @@ def Preprocessing(img, blurtype='gaussian', ksize=3):
     if blurtype == 'avg':
         img = cv2.blur(img, (ksize, ksize))
     elif blurtype == 'filter2d':
-        kernel = np.ones((ksize, ksize), np.float32) / (ksize / ksize)
+        kernel = np.ones((ksize, ksize), np.float32) / (ksize * ksize)
         img = cv2.filter2D(img, -1, kernel)
     elif blurtype == 'median':
         img = cv2.medianBlur(img, ksize)
@@ -29,7 +29,7 @@ def Identify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3)
         print('File tidak ditemukan')
         return None
     
-    img_targ = Preprocessing(img_targ, blurtype, ksize)
+    img_targ_proc = Preprocessing(img_targ, blurtype, ksize)
 
     # Desc Algo
     if algo == 'AKAZE':
@@ -44,7 +44,7 @@ def Identify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3)
         descriptor = cv2.AKAZE.create()
     
     # Keypoint & Desc Extraction
-    kp_targ, desc_targ = descriptor.detectAndCompute(img_targ, None)
+    kp_targ, desc_targ = descriptor.detectAndCompute(img_targ_proc, None)
 
     if algo == 'ORB':
         matcher = cv2.BFMatcher(cv2.NORM_HAMMING, False)
@@ -65,10 +65,10 @@ def Identify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3)
 
         ref_path = os.path.join(dataset_path, filename)
         img_ref = cv2.imread(ref_path)
-        img_ref = Preprocessing(img_ref, blurtype, ksize)
+        img_ref_proc = Preprocessing(img_ref, blurtype, ksize)
 
         # Keypoint & Desc Extraction
-        kp_ref, desc_ref = descriptor.detectAndCompute(img_ref, None)
+        kp_ref, desc_ref = descriptor.detectAndCompute(img_ref_proc, None)
 
         if desc_ref is None or len(desc_ref) < 2:
             continue
@@ -86,7 +86,7 @@ def Identify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3)
         
         # Best Match
         if len(good_matches) > best_match:
-            best_match = good_matches
+            best_match = len(good_matches)
             best_data = {
                 'name': filename,
                 'image': img_ref,
@@ -100,15 +100,15 @@ def Identify(img_path, dataset_path, algo='AKAZE', blurtype='gaussian', ksize=3)
         print(f'[{algo} | {blurtype.upper()}]')
         print('')
         print('Best Match:')
-        print(f'{best_data["name"]} ({best_data['matches']*100}%)')
+        print(f'{best_data["name"]} ({len(best_data['matches'])} match(s))')
         print('')
 
         result = cv2.drawMatches(
             img_targ, kp_targ,
             best_data['image'], best_data['keypoints'],
             best_data['matches'], None,
-            matchColor=(255, 255, 0), singlePointColor=(255, 0, 0),
-            flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
+            matchColor=(0, 0, 255), singlePointColor=(255, 0, 0),
+            # flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
         )
 
         result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
