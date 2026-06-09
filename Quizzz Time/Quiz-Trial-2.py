@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 def Preprocessing(img, blurtype='gaussian', ksize=3):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    img = cv2.equalizeHist(img)
 
     if blurtype == 'gaussian':
         img = cv2.GaussianBlur(img, (ksize, ksize), 0)
@@ -15,6 +14,7 @@ def Preprocessing(img, blurtype='gaussian', ksize=3):
         print('(!) Unknown Blur Detected!')
         print('    Using Gaussian Blur Instead')
         img = cv2.GaussianBlur(img, (ksize, ksize), 0)
+    img = cv2.equalizeHist(img)
 
     return img
 
