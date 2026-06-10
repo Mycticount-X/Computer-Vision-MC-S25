@@ -42,6 +42,7 @@ def TrainTest ():
     total_images = 0
     total_correct = 0
 
+    # Setup Rect
     for true_name in os.listdir(TEST_PATH):
         if true_name not in classes: continue
         true_id = classes.index(true_name)
@@ -62,7 +63,8 @@ def TrainTest ():
                 if res_id == true_id:
                     total_correct += 1
                 total_images += 1
-        
+    
+    # Accuracy
     if total_images > 0:
         acc = (total_correct / total_images) * 100
         print(f'Accuracy: {acc:.2f}%')
