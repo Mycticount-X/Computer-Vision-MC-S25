@@ -74,6 +74,7 @@ def TrainTest ():
     return classes
 
 def Predict (classes):
+    # Init & Check
     if not os.path.exists(MODEL_PATH):
         print('(!) Model not Found! Please Train the Model First')
         return None
@@ -82,6 +83,7 @@ def Predict (classes):
     recognizerx = cv2.face.LBPHFaceRecognizer_create()
     recognizerx.read(MODEL_PATH)
 
+    # Input
     img_path = input('Please Input Your Image Path (Absolute Path): ')
     if not os.path.exists(img_path):
         print('(!) Image Not Found')
@@ -90,12 +92,14 @@ def Predict (classes):
     img_ori = cv2.imread(img_path)
     img = cv2.cvtColor(img_ori, cv2.COLOR_BGR2GRAY)
 
+    # Detect
     detface = classifierx.detectMultiScale(img, 1.2, 5)
 
     if len(detface) < 1:
         print('(!) No Face Detected')
         return None
     
+    # Draw Rect
     for x, y, w, h in detface:
         imgface = img[y:y+h, x:x+w]
         res_id, confidence = recognizerx.predict(imgface)
@@ -108,6 +112,7 @@ def Predict (classes):
         text = f'{classes[res_id]} : {confidence}'
         cv2.putText(img_ori, text, (x, y-10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 2)
     
+    # Show
     cv2.imshow("Result", img_ori)
     cv2.waitKey(0)
     cv2.destroyAllWindows()

@@ -23,7 +23,7 @@ def TrainTest ():
     for idx, clx in enumerate(classes):
         folder_path = os.path.join(TRAIN_PATH, clx)
 
-        for raw_path in folder_path:
+        for raw_path in os.listdir(folder_path):
             img_path = os.path.join(folder_path, raw_path)
             img = cv2.imread(img_path)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -70,7 +70,7 @@ def TrainTest ():
 
     # Accuracy
     if total_images > 0:
-        acc = (total_images / total_correct) * 100
+        acc = (total_correct / total_images) * 100
         print('Model Tested')
         print(f'Accuracy: {acc:.2f}%')
     else:
@@ -79,5 +79,69 @@ def TrainTest ():
 
     return classes
 
-def Predict ():
+def Predict (classes):
+    # Init & Check
+    if not os.path.exists(MODEL_PATH):
+        print('(!) Cannot Find Model! Please Train the Model First')
+        return None
+
+    cascaderx = cv2.CascadeClassifier(CASCADE_PATH)
+    recognizerx = cv2.face.LBPHFaceRecognizer_create()
+    recognizerx.read(MODEL_PATH)
+
+    # Input
+    img_path = input('Please Input the Target Image Path (Absolute Path): ')
+    if not os.path.exists(img_path):
+        print('(!) Invalid Path')
+        return None
     
+    img_ori = cv2.imread(img_path)
+    img = cv2.cvtColor(img_ori, cv2.COLOR_BGR2GRAY)
+
+    # Detect Face
+    detface = cascaderx.detectMultiScale(img, 1.2, 5)
+
+    if len(detface) < 1:
+        print('(!) No Face Detected')
+        return None
+
+    # Draw Rect
+    for x, y, w, h in detface:
+        imgface = img[y:y+h,x:x+w]
+        res_id, confidence = recognizerx.predict(imgface)
+        confidence = math.floor(confidence * 100) / 100
+
+        print(f'Detected Face: {classes[res_id]}')
+        print(f'Confidence Level: {confidence}')
+
+        cv2.rectangle(img_ori, (x,y), (x+w, y+h), (0, 255, 0), 2)
+        text = f'{classes[res_id]}: {confidence}'
+        cv2.putText(img_ori, text, (x,y-10), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 0), 2)
+
+    # Show
+    cv2.imshow("Result", img_ori)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    classes = os.listdir(TRAIN_PATH) if os.path.exists(TRAIN_PATH) else None
+    if classes == None:
+        print('(!) Warning! Dataset Folder Not Found')
+    
+    while True:
+        print('')
+        print('PixelGate')
+        print('1. Train and Test')
+        print('2. Predict')
+        print('3. Exit')
+        cc = input('>> ')
+        print('')
+
+        if cc == '1':
+            classes = TrainTest()
+        elif cc == '2':
+            Predict(classes)
+        elif cc == '3':
+            print('OK, Byee')
+        else:
+            print('(!) Invalid Input')
